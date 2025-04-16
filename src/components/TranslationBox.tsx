@@ -100,6 +100,7 @@ export default function TranslationBox({
       async (result) => {
         setText(result.transcript);
         if (result.isFinal) {
+          setIsListening(false);
           await handleTranslation(result.transcript);
         }
       },
@@ -120,39 +121,43 @@ export default function TranslationBox({
     if (!synthesis || !text) return;
     
     setIsSpeaking(true);
-    synthesis.speak(text, isSource ? sourceLang : targetLang);
-    
-    // Add event listener for speech end
     const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = isSource ? sourceLang : targetLang;
     utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
     
+    window.speechSynthesis.cancel(); // Cancel any ongoing speech
+    window.speechSynthesis.speak(utterance);
   }, [synthesis, text, isSource, sourceLang, targetLang]);
 
   return (
-    <div className="flex flex-col space-y-4 w-full">
+    <div className="w-full">
       <div className="relative">
         <textarea
           value={text}
           onChange={handleTextChange}
           onKeyDown={handleKeyDown}
-          className={`w-full h-40 p-4 border rounded-lg resize-none transition-all duration-200 ${
+          className={`w-full h-40 p-6 border rounded-lg resize-none transition-all duration-200 text-lg ${
             isSource 
-              ? 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-              : 'border-gray-200 bg-gray-50'
+              ? 'border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 bg-white'
+              : !text.trim() ? 'border-gray-200 bg-white' : 'border-transparent bg-white'
           }`}
           placeholder={isSource ? "Type or speak your message here..." : "Translation will appear here..."}
           readOnly={!isSource}
         />
+        
+        {/* Controls */}
         <div className="absolute bottom-4 right-4 flex space-x-2">
           {isSource && (
             <button
               onClick={isListening ? handleStopListening : handleStartListening}
-              className={`p-2 rounded-full transition-all duration-200 ${
+              className={`p-3 rounded-full transition-all duration-200 ${
                 isListening 
                   ? 'bg-red-500 hover:bg-red-600 animate-pulse'
                   : 'bg-blue-500 hover:bg-blue-600'
-              } text-white shadow-lg hover:shadow-xl`}
+              } text-white shadow-sm`}
               title={isListening ? "Stop recording" : "Start recording"}
+              aria-label={isListening ? "Stop recording" : "Start recording"}
             >
               {isListening ? (
                 <HiStop className="w-5 h-5" />
@@ -161,23 +166,27 @@ export default function TranslationBox({
               )}
             </button>
           )}
-          <button
-            onClick={handleSpeak}
-            className={`p-2 rounded-full transition-all duration-200 ${
-              isSpeaking
-                ? 'bg-green-500 hover:bg-green-600 animate-pulse'
-                : 'bg-gray-500 hover:bg-gray-600'
-            } text-white shadow-lg hover:shadow-xl`}
-            title="Play audio"
-            disabled={!text}
-          >
-            {isSpeaking ? (
-              <HiArrowPath className="w-5 h-5 animate-spin" />
-            ) : (
-              <HiSpeakerWave className="w-5 h-5" />
-            )}
-          </button>
+          {text && (
+            <button
+              onClick={handleSpeak}
+              className={`p-3 rounded-full transition-all duration-200 ${
+                isSpeaking
+                  ? 'bg-blue-500 hover:bg-blue-600 animate-pulse'
+                  : 'bg-gray-500 hover:bg-gray-600'
+              } text-white shadow-sm`}
+              title="Play audio"
+              aria-label="Play audio"
+            >
+              {isSpeaking ? (
+                <HiArrowPath className="w-5 h-5 animate-spin" />
+              ) : (
+                <HiSpeakerWave className="w-5 h-5" />
+              )}
+            </button>
+          )}
         </div>
+        
+        {/* Loading overlay */}
         {isTranslating && (
           <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
             <div className="flex items-center space-x-2">

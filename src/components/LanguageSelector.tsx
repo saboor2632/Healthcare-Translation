@@ -1,6 +1,6 @@
-import React, { Fragment } from 'react';
-import { Listbox, Transition } from '@headlessui/react';
-import { HiCheck, HiChevronUpDown, HiGlobeAlt } from 'react-icons/hi2';
+import React from 'react';
+import { Listbox } from '@headlessui/react';
+import { HiCheck, HiChevronDown } from 'react-icons/hi2';
 import { SUPPORTED_LANGUAGES } from '../lib/speech';
 
 interface LanguageSelectorProps {
@@ -11,56 +11,57 @@ interface LanguageSelectorProps {
 
 export default function LanguageSelector({ value, onChange, label }: LanguageSelectorProps) {
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </label>
+      )}
+      
       <Listbox value={value} onChange={onChange}>
         <div className="relative">
-          <Listbox.Label className="block text-sm font-medium text-gray-700 mb-1">
-            {label}
-          </Listbox.Label>
-          <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-white py-3 pl-3 pr-10 text-left border border-gray-300 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-            <div className="flex items-center">
-              <HiGlobeAlt className="h-5 w-5 text-gray-400 mr-2" />
-              <span className="block truncate">
-                {SUPPORTED_LANGUAGES[value as keyof typeof SUPPORTED_LANGUAGES]}
-              </span>
-            </div>
-            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <HiChevronUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          <Listbox.Button className="w-full bg-white border border-gray-200 rounded-lg py-2.5 pl-4 pr-10 text-left shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <span className="block truncate font-medium">
+              {SUPPORTED_LANGUAGES[value as keyof typeof SUPPORTED_LANGUAGES]}
+            </span>
+            <span className="absolute inset-y-0 right-0 flex items-center pr-2">
+              <HiChevronDown 
+                className="h-5 w-5 text-gray-400 transition-transform duration-200" 
+                aria-hidden="true" 
+              />
             </span>
           </Listbox.Button>
-          <Transition
-            as={Fragment}
-            leave="transition ease-in duration-100"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-              {Object.entries(SUPPORTED_LANGUAGES).map(([code, name]) => (
-                <Listbox.Option
-                  key={code}
-                  className={({ active }) =>
-                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                      active ? 'bg-blue-50 text-blue-900' : 'text-gray-900'
-                    }`
-                  }
-                  value={code}
-                >
-                  {({ selected }) => (
-                    <>
-                      <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                        {name}
+          
+          <Listbox.Options className="absolute z-10 w-full mt-1 bg-white shadow-lg max-h-60 rounded-lg py-1 text-base overflow-auto focus:outline-none sm:text-sm border border-gray-200">
+            <div className="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">
+              Languages
+            </div>
+            {Object.entries(SUPPORTED_LANGUAGES).map(([code, name]) => (
+              <Listbox.Option
+                key={code}
+                value={code}
+                className={({ active, selected }) =>
+                  `cursor-pointer select-none relative py-2 pl-10 pr-4 ${
+                    selected ? 'bg-blue-50 text-blue-700' : 
+                    active ? 'bg-gray-50 text-gray-900' : 'text-gray-900'
+                  }`
+                }
+              >
+                {({ selected }) => (
+                  <>
+                    <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                      {name}
+                    </span>
+                    {selected && (
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-500">
+                        <HiCheck className="h-5 w-5" aria-hidden="true" />
                       </span>
-                      {selected ? (
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                          <HiCheck className="h-5 w-5" aria-hidden="true" />
-                        </span>
-                      ) : null}
-                    </>
-                  )}
-                </Listbox.Option>
-              ))}
-            </Listbox.Options>
-          </Transition>
+                    )}
+                  </>
+                )}
+              </Listbox.Option>
+            ))}
+          </Listbox.Options>
         </div>
       </Listbox>
     </div>
