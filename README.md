@@ -56,3 +56,4 @@ This application implements basic security measures to protect patient data:
 ## License
 
 MIT 
+
